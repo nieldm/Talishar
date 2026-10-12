@@ -132,6 +132,7 @@ $stateHashes = [PuzzleStateKey($state)];
 $probes = [];
 $stalls = 0;
 $steps = 0;
+$stalled = false;
 ob_start();
 try {
   for (; $steps < $runnerMaxSteps && !IsGameOver(); ++$steps) {
@@ -141,7 +142,10 @@ try {
     if (PuzzleStateKey($state) === $before) {
       // The bot had nothing to do here: pass priority, as a player would.
       $state = PuzzleStep($player, ["99", "", "", 0, []]);
-      if (PuzzleStateKey($state) === $before && ++$stalls > 20) break;
+      if (PuzzleStateKey($state) === $before && ++$stalls > 20) {
+        $stalled = true;
+        break;
+      }
     }
     $stateHashes[] = PuzzleStateKey($state);
     if (!IsGameOver()) {
@@ -164,6 +168,7 @@ echo json_encode([
   "steps" => $steps,
   "turns" => intval($currentTurn),
   "gameOver" => IsGameOver(),
+  "stopReason" => IsGameOver() ? "game_over" : ($stalled ? "stalled" : "max_steps"),
   "winner" => intval($winner),
   "health" => [intval(GetHealth(1)), intval(GetHealth(2))],
   "opening" => $opening,
