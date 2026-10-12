@@ -70,7 +70,7 @@ function HVYPlayAbility($cardID, $from, $resourcesPaid, $target = "-", $addition
         PlayAura("might", $currentPlayer, $numSixes); 
         if (CountAura("might", $currentPlayer) >= 6) PlayAura("agility", $currentPlayer); 
 
-        shuffle($cards);
+        RandomShuffle($cards);
         foreach ($cards as $card) $deck->AddTop($card, "DECK");
       }
       return "";

@@ -48,7 +48,7 @@ function BuildGameStateResponse($gameName, $playerID, $authKey, $sessionData = [
   global $combatChain, $combatChainState, $layers, $chainLinks, $chainLinkSummary, $landmarks;
   global $turn, $currentPlayer, $mainPlayer, $defPlayer, $firstPlayer, $currentTurn, $actionPoints;
   global $currentTurnEffects, $nextTurnEffects, $dqVars, $lastPlayed, $events;
-  global $p1Key, $p2Key, $myHealth, $theirHealth, $winner;
+  global $p1Key, $p2Key, $myHealth, $theirHealth, $winner, $gameSeed;
   global $CombatChain, $CCS_AttackTargetUID, $CCS_WeaponIndex, $CCS_RequiredEquipmentBlock, $CCS_RequiredNegCounterEquipmentBlock, $CCS_CachedPreBlockValue;
   global $CCS_DamageDealt, $CCS_HitThisLink;
   global $AIHasInfiniteHP, $practiceDummyWeaponPower, $EffectContext, $CS_NumCardsDrawn;
@@ -170,6 +170,8 @@ function BuildGameStateResponse($gameName, $playerID, $authKey, $sessionData = [
   }
 
   $response->lastUpdate = $cacheVal;
+  // Knowing the seed mid-game would reveal deck order and future rolls, so it is only shown once the game is over.
+  if ($isGameOver && !empty($gameSeed)) $response->gameSeed = $gameSeed;
 
   // Spectator count and names
   $spectatorData = function_exists('GetActiveSpectators') ? GetActiveSpectators($gameName) : ['count' => 0, 'names' => []];

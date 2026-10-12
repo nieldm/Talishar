@@ -164,10 +164,7 @@ class Deck {
   }
 
   function Shuffle($parameter) {
-    if ($parameter == "SKIPSEED") {
-      global $randomSeeded;
-      $randomSeeded = true;
-    }
+    if ($parameter == "SKIPSEED") SeedRandomForInitialShuffle($this->playerID);
     // Fisher-Yates in-place: O(n) vs the previous O(n²) build-and-replace
     $n = count($this->deck);
     for ($i = $n - 1; $i > 0; --$i) {

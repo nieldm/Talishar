@@ -131,8 +131,11 @@ $currentPlayer = 0;
 $isReplay = 0;
 WriteCache($gameName, ($currentUpdate + 1) . "!" . $currentTime . "!" . $currentTime . "!-1!-1!" . $currentTime . "!"  . $p1Hero . "!" . $p2Hero . "!" . $visibility . "!" . $isReplay . "!0!0!" . $format . "!" . $MGS_GameStarted . "!" . $p1chatEnabled . "!" . $p2chatEnabled); //Initialize SHMOP cache for this game
 
+// The seed comes from the lobby's game file; lobbies made before seeds existed get one now.
+$startingGameSeed = !empty($gameSeed) ? $gameSeed : GenerateGameSeed();
 ob_start();
 include "ParseGamestate.php";
+$gameSeed = $startingGameSeed;
 include "StartEffects.php";
 ob_end_clean();
 InitializeRustCounterAccrualForGame($p1id, $p1IsPatron, $p1IsAI, $p2id, $p2IsPatron, $p2IsAI);
