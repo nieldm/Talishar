@@ -4,6 +4,7 @@ include "../HostFiles/Redirector.php";
 include "../Libraries/HTTPLibraries.php";
 include_once "../Libraries/SHMOPLibraries.php";
 include_once "../Libraries/PlayerSettings.php";
+include_once "../Libraries/CoreLibraries.php";
 include_once '../Assets/patreon-php-master/src/PatreonDictionary.php';
 require_once '../Assets/patreon-php-master/src/API.php';
 include_once '../Assets/patreon-php-master/src/PatreonLibraries.php';
@@ -27,6 +28,11 @@ $favoriteDeckLink = TryPOST("favoriteDecks", "0"); //This one is kind of weird. 
 $gameDescription = htmlspecialchars(TryPOST("gameDescription", "Game #"), ENT_QUOTES); //Just a string with the game name
 $deckbuilderID = TryPOST("user", "");
 $deckTestDeck = TryPOST("deckTestDeck", "");
+$requestedSeed = trim(TryPOST("seed", "")); //Optional: the same seed, decks and plays give the same random outcomes
+$gameSeed = NormalizeGameSeed($requestedSeed);
+// Whoever picks the seed can work out both decks' order, so a public game never takes one from the host.
+$gameSeedChosenByHost = ($gameSeed === $requestedSeed && ($deckTestMode != "" || $visibility == "private")) ? "1" : "0";
+if ($gameSeed === $requestedSeed && $gameSeedChosenByHost == "0") $gameSeed = GenerateGameSeed();
 
 if ($favoriteDeckLink != 0) {
   $favDeckArr = explode("<fav>", $favoriteDeckLink);

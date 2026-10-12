@@ -77,6 +77,8 @@
   $p2EquipmentSubmitted = $lines[$li++] ?? '';
   if ($p1EquipmentSubmitted === '') $p1EquipmentSubmitted = ($p1SideboardSubmitted == "1" ? "1" : "0");
   if ($p2EquipmentSubmitted === '') $p2EquipmentSubmitted = ($p2SideboardSubmitted == "1" ? "1" : "0");
+  $gameSeed             = $lines[$li++] ?? ''; // Older game files predate seeds
+  $gameSeedChosenByHost = $lines[$li++] ?? '';
   unset($lines, $li, $line);
 
   $MGS_Initial = 0;
