@@ -165,6 +165,26 @@ php run_tests.php 2>&1 | tee test_output.log
 php -d display_errors=1 run_tests.php
 ```
 
+## 🎲 Simulating Games
+
+`scripts/simulate_games.php` plays whole bot-vs-bot games with the real engine, one PHP process per game, and reports crashes, stuck games, win rates and game length. Games are seeded, so a failing seed can be replayed exactly.
+
+```bash
+# 20 games of Ira vs Fai (seeds sim-1 .. sim-20)
+php scripts/simulate_games.php
+
+# 100 games of two SAGE decks, 8 at a time, with a JSON report
+php scripts/simulate_games.php --games=100 --p1=BriarSAGE.txt --p2=BravoSAGE.txt --jobs=8 --json=report.json
+
+# Play every seed twice and fail if a seed does not replay the same game
+php scripts/simulate_games.php --check-determinism
+
+# Replay one game and print its full JSON (opening hands, state hashes, log)
+php tests/Engine/Fixtures/SeedGameRunner.php sim-7 400 IraCC.txt FaiCC.txt
+```
+
+Decks come from `Assets/`. The script exits with 1 when a game crashes or a seed does not replay the same game; each crash is printed with the command that reproduces it. Run `php scripts/simulate_games.php --help` for every option.
+
 ## 📈 Continuous Integration
 
 ### GitHub Actions (Future)
