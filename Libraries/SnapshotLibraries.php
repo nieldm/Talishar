@@ -91,7 +91,7 @@ function SavePlayableSnapshot(string $gameName, int $playerID): array
 // so every opening of that snapshot still replays the same way.
 function ReseedSnapshotGamestate(array $lines, int $chainLinks, string $seed): array
 {
-  $seedLine = 91 + $chainLinks;
+  $seedLine = 92 + $chainLinks;
   // Older gamestates end before the seed line; keep the empty entry after it that the trailing line break leaves.
   while (count($lines) < $seedLine + 2) $lines[] = "";
   $lines[$seedLine] = $seed;
