@@ -20,6 +20,7 @@ function SavePlayableSnapshot(string $gameName, int $playerID): array
   }
   $lines[58 + $chainLinks] = bin2hex(random_bytes(32));
   $lines[59 + $chainLinks] = bin2hex(random_bytes(32));
+  $lines = ReseedSnapshotGamestate($lines, $chainLinks, GenerateGameSeed());
   $gamestate = implode("\r\n", $lines);
   $gameFile[7] = $lines[58 + $chainLinks];
   $gameFile[8] = $lines[59 + $chainLinks];
@@ -83,6 +84,18 @@ function SavePlayableSnapshot(string $gameName, int $playerID): array
 
   if (count($saved) >= $maxSlots && $oldest !== null) deleteDir(rtrim($oldest, "/\\") . "/");
   return ["success" => true, "snapshotNumber" => $counter, "message" => "Snapshot #$counter saved."];
+}
+
+// With the live game's seed, a snapshot would roll and shuffle exactly like the game it came from, so a player
+// could try a roll in the snapshot before making it for real. Each snapshot gets its own seed once, when saved,
+// so every opening of that snapshot still replays the same way.
+function ReseedSnapshotGamestate(array $lines, int $chainLinks, string $seed): array
+{
+  $seedLine = 91 + $chainLinks;
+  // Older gamestates end before the seed line; keep the empty entry after it that the trailing line break leaves.
+  while (count($lines) < $seedLine + 2) $lines[] = "";
+  $lines[$seedLine] = $seed;
+  return $lines;
 }
 
 function IsSnapshotDirectory(string $path): bool

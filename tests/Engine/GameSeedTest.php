@@ -89,6 +89,13 @@ final class GameSeedTest extends TestCase
         $this->assertNotSame($probe['thisSeed'], $probe['otherSeed']);
     }
 
+    public function testSnapshotRollsDifferentlyFromItsGameButTheSameOnEveryOpening(): void
+    {
+        $probe = self::PlayGame('abc123')['snapshotProbe'];
+        $this->assertNotSame($probe['live'], $probe['snapshot']);
+        $this->assertSame($probe['snapshot'], $probe['snapshotReopened']);
+    }
+
     public function testGamesWithoutSeedStayRandom(): void
     {
         $first = $this->ReplayGame('-');

@@ -36,6 +36,7 @@ include_once "Libraries/PuzzleVerify.php";
 include_once "includes/dbh.inc.php";
 include_once "includes/functions.inc.php";
 include_once "MenuFiles/StartHelper.php";
+include_once "Libraries/SnapshotLibraries.php";
 ob_end_clean();
 
 function RunnerFail($message)
@@ -128,6 +129,23 @@ $gameSeed = $startingGameSeed . "-other";
 $seedMixProbe["otherSeed"] = RunnerRandomProbe();
 $gameSeed = $startingGameSeed;
 
+// A snapshot saved now must roll differently from this game, and the same way every time it is opened.
+function RunnerProbeGamestate($content)
+{
+  WriteGamestateCache($GLOBALS["gameName"], $content);
+  ParseGamestate();
+  return RunnerRandomProbe();
+}
+$liveGamestate = (string)$lastWrittenGamestate;
+$liveLines = explode("\r\n", $liveGamestate);
+$snapshotGamestate = implode("\r\n", ReseedSnapshotGamestate($liveLines, intval($liveLines[56]), GenerateGameSeed()));
+$snapshotProbe = [
+  "live" => RunnerProbeGamestate($liveGamestate),
+  "snapshot" => RunnerProbeGamestate($snapshotGamestate),
+  "snapshotReopened" => RunnerProbeGamestate($snapshotGamestate),
+];
+RunnerProbeGamestate($liveGamestate);
+
 $stateHashes = [PuzzleStateKey($state)];
 $probes = [];
 $stalls = 0;
@@ -174,6 +192,7 @@ echo json_encode([
   "opening" => $opening,
   "probes" => $probes,
   "seedMixProbe" => $seedMixProbe,
+  "snapshotProbe" => $snapshotProbe,
   "stateHashes" => $stateHashes,
   "finalStateHash" => end($stateHashes),
   "storedSeed" => $gameSeed,
