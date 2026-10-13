@@ -193,6 +193,9 @@ echo json_encode([
   "probes" => $probes,
   "seedMixProbe" => $seedMixProbe,
   "snapshotProbe" => $snapshotProbe,
+  // The seed must always occupy the gamestate's last written slot: if a future field collides
+  // with it instead of moving the seed, these two indices drift apart instead of matching.
+  "gameSeedSlot" => ["index" => 92 + intval($state[56] ?? 0), "lastContentIndex" => count($state) - 2],
   "stateHashes" => $stateHashes,
   "finalStateHash" => end($stateHashes),
   "storedSeed" => $gameSeed,

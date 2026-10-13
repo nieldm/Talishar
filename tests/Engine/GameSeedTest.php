@@ -96,6 +96,13 @@ final class GameSeedTest extends TestCase
         $this->assertSame($probe['snapshot'], $probe['snapshotReopened']);
     }
 
+    public function testGameSeedOccupiesTheLastGamestateSlot(): void
+    {
+        $slot = self::PlayGame('abc123')['gameSeedSlot'];
+        $this->assertSame($slot['lastContentIndex'], $slot['index'],
+            'gameSeed must be the last gamestate slot; a future field colliding with its index would move it and silently corrupt saves');
+    }
+
     public function testGamesWithoutSeedStayRandom(): void
     {
         $first = $this->ReplayGame('-');
