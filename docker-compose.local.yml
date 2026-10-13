@@ -1,0 +1,61 @@
+# Local Talishar stack for this worktree, meant to run under OrbStack/Docker
+# Desktop with no other checkouts around.
+#
+# Differences from the repo's docker-compose.yml:
+#   - dropped the ../Talishar-FE bind mount (ad-hoc card generator only) so the
+#     stack does not need a sibling frontend checkout
+#   - dropped phpmyadmin (not needed to play or test)
+#   - fixed project name (talishar-local) so this stack never touches the
+#     repo's default compose project; override with COMPOSE_PROJECT_NAME and
+#     TALISHAR_WEB_PORT/TALISHAR_REDIS_PORT to run a second copy
+#
+# Usage: scripts/local/start_env.sh (or: docker compose -f docker-compose.local.yml up -d)
+name: talishar-local
+
+services:
+  web-server:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      args:
+        PHP_INI: development
+    restart: unless-stopped
+    volumes:
+      - "./:/var/www/html/game"
+      - "./docker/docker-php-ext-xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini"
+      - "./docker/docker-php-ext-opcache.ini:/usr/local/etc/php/conf.d/docker-php-ext-opcache.ini"
+      - "./docker/docker-php-apcu-tuning.ini:/usr/local/etc/php/conf.d/zz-talishar-apcu-tuning.ini"
+      - "./docker/apache-performance.conf:/etc/apache2/conf-enabled/zz-talishar-performance.conf"
+    command: apache2-foreground
+    ports:
+      - "${TALISHAR_WEB_PORT:-8080}:80"
+    depends_on:
+      - redis
+      - mysql-server
+    environment:
+      MYSQL_ROOT_PASSWORD: "secret"
+      MYSQL_SERVER_NAME: "mysql-server"
+      MYSQL_SERVER_USER_NAME: "root"
+      REDIS_HOST: "redis"
+      REDIS_ENABLED: "true"
+      DOMAIN: "localhost"
+      # Local runtime: detect PHP file edits without restarting the container.
+      PHP_OPCACHE_VALIDATE_TIMESTAMPS: "1"
+
+  mysql-server:
+    image: mysql:lts
+    restart: unless-stopped
+    command: --max_connections=500
+    environment:
+      MYSQL_ROOT_PASSWORD: "secret"
+      MYSQL_DATABASE: "fabonline"
+    volumes:
+      - "./mysql-data:/var/lib/mysql"
+      # 00_database.sql is loaded on first start (empty mysql-data only).
+      - "./Database:/docker-entrypoint-initdb.d"
+
+  redis:
+    image: redis:7.0
+    restart: unless-stopped
+    ports:
+      - "${TALISHAR_REDIS_PORT:-6382}:6379"
