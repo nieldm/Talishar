@@ -1219,10 +1219,7 @@ function DecisionQueueStaticEffect($phase, $player, $parameter, $lastResult)
       return $lastResult;
     case "SHUFFLEDECK":
       $zone = &GetDeck($player);
-      if ($parameter == "SKIPSEED") {
-        global $randomSeeded;
-        $randomSeeded = true;
-      }
+      if ($parameter == "SKIPSEED") SeedRandomForInitialShuffle($player);
       $zoneCount = count($zone);
       for ($i = $zoneCount - 1; $i > 0; --$i) {
         $j = GetRandom(0, $i);

@@ -699,12 +699,15 @@ if (isset($_SESSION["userid"])) LogIPHistory($_SESSION["userid"]);
     }
 
 
+     if (($gameSeedChosenByHost ?? "") == "1") WriteLog("🌱 This game uses a seed chosen by the host, so its shuffles and rolls can be known in advance.", highlight: true, path: "../");
+     SeedRandomFromGameSeed($gameSeed ?? "", "first-player-roll");
      while ($p1roll == $p2roll && $tries > 0) {
        $p1roll = rand(1, 6) + rand(1, 6);
        $p2roll = rand(1, 6) + rand(1, 6);
        WriteLog("🎲 Player 1 rolled $p1roll and Player 2 rolled $p2roll.", path: "../");
        --$tries;
      }
+     mt_srand(); // Keys generated later in this request must not follow from the seed
      $firstPlayerChooser = ($p1roll > $p2roll ? 1 : 2);
      WriteLog("Player $firstPlayerChooser chooses who goes first.", path: "../");
      $gameStatus = $MGS_ChooseFirstPlayer;

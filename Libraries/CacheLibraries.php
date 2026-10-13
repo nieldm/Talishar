@@ -70,7 +70,8 @@ function RecordPerformanceMetric($name, $durationMs, $context = []): void {
   if (strtolower((string)getenv('PERFORMANCE_METRICS_ENABLED')) !== 'true') return;
   $sampleRate = (float)(getenv('PERFORMANCE_METRICS_SAMPLE_RATE') ?: 1.0);
   $sampleRate = max(0.0, min(1.0, $sampleRate));
-  if ($sampleRate < 1.0 && mt_rand() / mt_getrandmax() > $sampleRate) return;
+  // random_int, not mt_rand: drawing from mt_rand would shift the game's seeded random sequence.
+  if ($sampleRate < 1.0 && random_int(0, 1000000) / 1000000 > $sampleRate) return;
   error_log(json_encode([
     'type' => 'performance',
     'metric' => (string)$name,

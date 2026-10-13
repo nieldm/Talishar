@@ -2882,8 +2882,7 @@ function ProcessTrigger($player, $parameter, $uniqueID, $target = "-", $addition
           if (count($chainLinks[$i]) == $chainLinksPieces) continue;
           $defendingCardIndices = GetDefendingCardsFromCombatChainLink($chainLinks[$i], $defPlayer);
           if (count($defendingCardIndices) > 0) {
-            $randKeys = array_rand($defendingCardIndices, 1);
-            $index = $defendingCardIndices[$randKeys];
+            $index = $defendingCardIndices[GetRandom(0, count($defendingCardIndices) - 1)];
             $chosenCard = $Link->GetLinkCard($index);
             $chainLinks[$i][$index + 2] = "0";
             $cardsToBanish[] = $chosenCard->ID();

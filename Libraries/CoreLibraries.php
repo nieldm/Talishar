@@ -45,8 +45,9 @@ function GetRandom($low=-1, $high=-1, $reroll=false)
 
 function SeedRandom($reroll=false)
 {
-  global $randomSeeded, $currentTurn, $turn, $currentPlayer, $layers, $combatChain;
+  global $randomSeeded, $currentTurn, $turn, $currentPlayer, $layers, $combatChain, $gameSeed;
   $seedString = $currentTurn . implode("", $turn) . $currentPlayer;
+  if (!empty($gameSeed)) $seedString = $gameSeed . "|" . $seedString;
   if(!empty($layers)) $seedString .= implode("", $layers);
   if(!empty($combatChain)) $seedString .= implode("", $combatChain);
 
@@ -71,6 +72,42 @@ function SeedRandom($reroll=false)
   $seedString = hash("sha256", $seedString);
   mt_srand(crc32($seedString));
   $randomSeeded = true;
+}
+
+// The opening shuffles cannot be seeded from the gamestate: anyone with both decklists could work out the deck order.
+// They use the game seed instead, which stays secret until the game is over. Games without one shuffle unseeded.
+function SeedRandomForInitialShuffle($player)
+{
+  global $randomSeeded, $gameSeed;
+  if (!empty($gameSeed)) mt_srand(crc32(hash("sha256", $gameSeed . "|initial-shuffle|" . $player)));
+  $randomSeeded = true;
+}
+
+function GenerateGameSeed()
+{
+  return bin2hex(random_bytes(8));
+}
+
+// A seed chosen by a player is kept as given, so the same text recreates the same game.
+function NormalizeGameSeed($seed)
+{
+  $seed = trim((string)$seed);
+  return preg_match('/^[A-Za-z0-9_-]{1,64}$/', $seed) ? $seed : GenerateGameSeed();
+}
+
+// Rolls made before the gamestate exists (e.g. who chooses the first player) come only from the game seed.
+function SeedRandomFromGameSeed($gameSeed, $purpose)
+{
+  if (!empty($gameSeed)) mt_srand(crc32(hash("sha256", $gameSeed . "|" . $purpose)));
+}
+
+function RandomShuffle(&$array)
+{
+  $array = array_values($array);
+  for ($i = count($array) - 1; $i > 0; --$i) {
+    $j = GetRandom(0, $i);
+    $tmp = $array[$i]; $array[$i] = $array[$j]; $array[$j] = $tmp;
+  }
 }
 
 function AcquireGameActionLock(string $gameName, ?string $gamesRoot = null)

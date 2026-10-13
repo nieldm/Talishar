@@ -40,6 +40,8 @@ if ($inGameStatus == $GameStatus_Rematch || $inGameStatus == $GameStatus_SwapRem
   }
 
   $gameGUID = ResetGameGUIDForRematch(); // Required for distinct hero mastery awards.
+  $gameSeed = GenerateGameSeed(); // A rematch with the old seed would deal the same opening hands.
+  $gameSeedChosenByHost = "0";
   $p2IsAILocal = $p2IsAI == "1";
   $gameStatus = $MGS_ChooseFirstPlayer;
   SetCachePiece($gameName, 14, $gameStatus);
