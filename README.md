@@ -109,6 +109,64 @@ docker compose down
 4. Set a breakpoint in the code
 5. Start the debugger by selecting the `Listen for XDebug` configuration and clicking the green play button
 
+## Local environment for one worktree (OrbStack)
+
+`docker-compose.local.yml` + `scripts/local/` bring up a self-contained stack in
+any checkout: no sibling `Talishar-FE` directory, no phpmyadmin, and its own
+compose project (`talishar-local`) so it never touches the repo's default
+project. One stack per machine at a time; for a second copy set both
+`COMPOSE_PROJECT_NAME` and `TALISHAR_WEB_PORT`/`TALISHAR_REDIS_PORT`.
+
+### From zero
+
+```bash
+bash scripts/local/start_env.sh
+```
+
+The script starts the Docker engine if needed (OrbStack), creates the gitignored
+files the app reads (`HostFiles/Redirector.php`, `HostFiles/GameIDCounter.txt`,
+`Games/`, `APIKeys/APIKeys.php` with empty credentials), builds and starts PHP
+8.3 (Apache), MySQL and Redis, waits until both answer, applies
+`Database/migrations/*.sql` (changes already in the schema are skipped), and
+installs composer dependencies into `vendor/` on first run.
+
+- web: `http://localhost:8080/game/` (backend only; set `TALISHAR_WEB_PORT` to move it)
+- mysql: `mysql-server:3306`, database `fabonline`, root/`secret`; data lives in
+  `mysql-data/` and the first start loads `Database/00_database.sql`
+- redis: `localhost:6382`, kept for parity with `docker-compose.yml` (the engine
+  caches in shmop/APCu)
+
+### Scripted match between two synthetic users
+
+```bash
+docker compose -f docker-compose.local.yml exec -T -w /var/www/html/game web-server \
+  php scripts/local/play_local_match.php
+```
+
+It signs up two synthetic accounts through `AccountFiles/SignupAPI.php`, writes
+`Games/<n>/` the way `CreateGame.php` + `JoinGame.php` do for a private game
+(decks come from `Assets/*.txt`, so no deckbuilder service is needed), chooses
+the first player and starts the game through `Start.php`, then plays to the end
+through `ProcessInputAPI.php`. Both seats run the engine's own bot
+(`EncounterAI` via p1IsAI/p2IsAI), so no browser is involved. `--json` prints a
+machine-readable report; `--p1-deck=`, `--p2-deck=` and `--users=` change the
+lineup. The game log and the whole `Games/<n>/` directory stay behind as
+evidence.
+
+### Tests
+
+```bash
+docker compose -f docker-compose.local.yml exec -T -w /var/www/html/game web-server \
+  vendor/bin/phpunit --no-coverage
+```
+
+### Stop / reset
+
+```bash
+bash scripts/local/stop_env.sh          # stop the stack
+bash scripts/local/stop_env.sh --wipe   # also delete mysql-data (recreated on the next start)
+```
+
 ## Project Architecture
 
 Talishar consists of three main components working together:
